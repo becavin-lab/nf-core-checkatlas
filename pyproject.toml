@@ -6,8 +6,8 @@ description="One liner tool to check the quality of your single-cell atlases."
 authors = ["becavin-lab"]
 readme = "README.md"
 license = "MIT"
-packages = [{include = "checkatlas"}]
-include = ["checkatlas/checkatlas_workflow.nf"]
+packages = [{include = "nfcheckatlas"}]
+include = ["nfcheckatlas/checkatlas_workflow.nf"]
 exclude = ["tests/", ".github", "*dask-worker-space*"]
 homepage = "https://checkatlas.readthedocs.io/"
 repository = "https://github.com/becavin-lab/nf-core-checkatlas/"
@@ -15,6 +15,9 @@ documentation = "https://checkatlas.readthedocs.io/"
 
 [tool.poetry.dependencies]
 python = "^3.10"
+nextflow = "^23.4.2"
+multiqc = "^1.14"
+checkatlas = "^0.2.6"
 
 [tool.mypy]
 no_implicit_optional = true

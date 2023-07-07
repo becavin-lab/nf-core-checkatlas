@@ -5,7 +5,7 @@ process summary {
       path config_file
     script:
       """
-      checkatlas-workflow summary ${config_file}
+      nfcheckatlas-workflow summary ${config_file}
       """
 }
 
@@ -14,7 +14,7 @@ process qc {
       path config_file
     script:
       """
-      checkatlas-workflow qc ${config_file}
+      nfcheckatlas-workflow qc ${config_file}
       """
 }
 
@@ -23,7 +23,7 @@ process metric_cluster {
       path config_file
     script:
       """
-      checkatlas-workflow metric_cluster ${config_file}
+      nfcheckatlas-workflow metric_cluster ${config_file}
       """
 }
 
@@ -32,7 +32,7 @@ process metric_annot {
       path config_file
     script:
       """
-      checkatlas-workflow metric_annot ${config_file}
+      nfcheckatlas-workflow metric_annot ${config_file}
       """
 }
 
@@ -41,7 +41,7 @@ process metric_dimred {
       path config_file
     script:
       """
-      checkatlas-workflow metric_dimred ${config_file}
+      nfcheckatlas-workflow metric_dimred ${config_file}
       """
 
 
