@@ -4,8 +4,8 @@ import logging
 import yaml
 
 from . import nfcheckatlas  # pragma: no cover
-from . import atlas
-from .metrics import annot, cluster, dimred
+from checkatlas import atlas
+from checkatlas.metrics import annot, cluster, dimred
 
 
 def main() -> None:  # pragma: no cover

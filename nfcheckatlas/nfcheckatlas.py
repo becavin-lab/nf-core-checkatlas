@@ -3,8 +3,8 @@ import inspect
 import logging
 import os
 from datetime import datetime
-from . import checkatlas
-from . import atlas, atlas_seurat, checkatlas_workflow, folders, multiqc
+from checkatlas import checkatlas, atlas, atlas_seurat, folders
+from . import checkatlas_workflow, multiqc
 
 logger = logging.getLogger("checkatlas")
 

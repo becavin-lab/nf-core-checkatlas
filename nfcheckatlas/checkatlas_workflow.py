@@ -4,8 +4,8 @@ import os.path
 
 import yaml
 
-from . import checkatlas  # pragma: no cover
-from . import atlas, atlas_seurat, folders
+from checkatlas import checkatlas  # pragma: no cover
+from checkatlas import atlas, atlas_seurat, folders
 
 logger = logging.getLogger("checkatlas-workflow")
 FUNCTION_TYPE = [
