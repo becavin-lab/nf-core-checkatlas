@@ -146,7 +146,7 @@ def run_checkatlas(clean_atlas, args) -> None:
     )
     # Go through all atls
     for atlas_path, atlas_info in clean_atlas.items():
-        atlas_name = atlas_info[0]
+        atlas_name = checkatlas.get_atlas_name(atlas_path)
         # Load adata only if resume is not selected
         # and if csv_summary_path do not exist
         csv_summary_path = os.path.join(
@@ -160,23 +160,23 @@ def run_checkatlas(clean_atlas, args) -> None:
             )
         else:
             if atlas_info[1] == "Seurat":
-                seurat = atlas_seurat.read_atlas(atlas_path, atlas_info)
+                seurat = atlas_seurat.read_atlas(atlas_path)
                 logger.info(
                     f"Run checkatlas pipeline for {atlas_name} Seurat atlas"
                 )
                 # Run pipeline functions
                 for function in pipeline_functions_seurat:
-                    function(seurat, atlas_path, atlas_info, args)
+                    function(seurat, atlas_path, args)
             else:
-                adata = atlas.read_atlas(atlas_path, atlas_info)
+                adata = atlas.read_atlas(atlas_path)
                 # Clean adata
-                adata = atlas.clean_scanpy_atlas(adata, atlas_info)
+                adata = atlas.clean_scanpy_atlas(adata, atlas_path)
                 logger.info(
                     f"Run checkatlas pipeline for {atlas_name} Scanpy atlas"
                 )
                 # Run pipeline functions
                 for function in pipeline_functions_scanpy:
-                    function(adata, atlas_path, atlas_info, args)
+                    function(adata, atlas_path, args)
 
 
 if __name__ == "__main__":

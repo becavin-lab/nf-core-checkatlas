@@ -209,7 +209,7 @@ def main() -> None:  # pragma: no cover
 
     # Parse all args
     args = parser.parse_args()
-
+    
     # Validate TEST_ALLMETRICS
     if args.TEST_ALLMETRICS:
         args.metric_cluster = cluster.__all__

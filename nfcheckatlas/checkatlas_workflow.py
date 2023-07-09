@@ -206,10 +206,10 @@ def workflow():
     else:
         if args.atlas_type == "Seurat":
             pipeline_functions = get_workflow_functions(atlas_seurat, args)
-            seurat = atlas_seurat.read_atlas(args.atlas_path, atlas_info)
+            seurat = atlas_seurat.read_atlas(args.atlas_path)
             # Run pipeline functions
             for function in pipeline_functions:
-                function(seurat, args.atlas_path, atlas_info, args)
+                function(seurat, args.atlas_path, args)
         else:
             pipeline_functions = get_workflow_functions(atlas, args)
             adata = atlas.read_atlas(args.atlas_path, atlas_info)
@@ -217,7 +217,7 @@ def workflow():
             adata = atlas.clean_scanpy_atlas(adata, atlas_info)
             # Run pipeline functions
             for function in pipeline_functions:
-                function(adata, args.atlas_path, atlas_info, args)
+                function(adata, args.atlas_path, args)
 
 
 def get_workflow_functions(module, args):
