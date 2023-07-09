@@ -1,9 +1,11 @@
 import argparse
-import inspect
 import logging
 import os
 from datetime import datetime
-from checkatlas import checkatlas, atlas, atlas_seurat, folders
+from checkatlas import checkatlas
+from checkatlas import atlas
+from checkatlas import atlas_seurat
+from checkatlas.utils import folders
 from . import checkatlas_workflow, multiqc
 
 logger = logging.getLogger("checkatlas")
