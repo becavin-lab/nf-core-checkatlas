@@ -1,0 +1,33 @@
+NOADATA: false
+NOMETRIC: false
+NOMULTIQC: true
+NOQC: false
+NOREDUCTION: false
+TEST_ALLMETRICS: false
+config: ''
+debug: true
+metric_annot: []
+metric_cluster:
+- davies_bouldin
+metric_dimred: []
+multiqc: CheckAtlas_MultiQC
+nextflow: 0
+obs_cluster:
+- cell_type
+- CellType
+- celltype
+- ann_finest_level
+- cellranger_graphclust
+- seurat_clusters
+- RNA_snn_res.0.5
+- louvain
+- leiden
+- orig.ident
+path: /data/analysis/data_becavin/checkatlas_test/tuto/data3/
+plot_celllimit: 10000
+qc_display:
+- violin_plot
+- total_counts
+- n_genes_by_counts
+- pct_counts_mt
+resume: false
