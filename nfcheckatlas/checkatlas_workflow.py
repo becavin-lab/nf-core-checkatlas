@@ -6,7 +6,7 @@ import yaml
 
 from checkatlas import checkatlas  # pragma: no cover
 from checkatlas import atlas
-from checkatlas import atlas_seurat
+from checkatlas import seurat
 from checkatlas.utils import folders
 
 logger = logging.getLogger("checkatlas-workflow")
@@ -207,8 +207,8 @@ def workflow():
         )
     else:
         if args.atlas_type == "Seurat":
-            pipeline_functions = get_workflow_functions(atlas_seurat, args)
-            seurat = atlas_seurat.read_atlas(args.atlas_path)
+            pipeline_functions = get_workflow_functions(seurat, args)
+            data_seurat = seurat.read_atlas(args.atlas_path)
             # Run pipeline functions
             for function in pipeline_functions:
                 function(seurat, args.atlas_path, args)

@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 from checkatlas import checkatlas
 from checkatlas import atlas
-from checkatlas import atlas_seurat
+from checkatlas import seurat
 from checkatlas.utils import folders
 from . import checkatlas_workflow, multiqc
 
@@ -53,13 +53,13 @@ def run(args: argparse.Namespace) -> None:
     )
 
     # Put all atlases together in the list
-    clean_atlas = dict(clean_atlas_scanpy)
-    clean_atlas.update(clean_atlas_cellranger)
-    clean_atlas.update(clean_atlas_seurat)
+    clean_atlas = clean_atlas_scanpy
+#    clean_atlas.update(clean_atlas_cellranger)
+#    clean_atlas.update(clean_atlas_seurat)
 
     if len(clean_atlas_cellranger) > 0:
         logger.debug("Install Seurat if needed")
-        atlas_seurat.check_seurat_install()
+        seurat.check_seurat_install()
 
     # Run all checkatlas analysis
     if args.nextflow == 0:
@@ -141,14 +141,14 @@ def run_checkatlas(clean_atlas, args) -> None:
 
     # List all functions to run
     pipeline_functions_scanpy = checkatlas.get_pipeline_functions(atlas, args)
-    pipeline_functions_seurat = checkatlas.get_pipeline_functions(atlas_seurat, args)
+    pipeline_functions_seurat = checkatlas.get_pipeline_functions(seurat, args)
     logger.debug(
         f"List of functions which will be ran "
         f"for each Seurat atlas: {pipeline_functions_scanpy}"
     )
     # Go through all atls
-    for atlas_path, atlas_info in clean_atlas.items():
-        atlas_name = checkatlas.get_atlas_name(atlas_path)
+    for atlas_info in clean_atlas:
+        atlas_name = atlas_info[checkatlas.ATLAS_NAME_KEY]
         # Load adata only if resume is not selected
         # and if csv_summary_path do not exist
         csv_summary_path = os.path.join(
@@ -161,24 +161,24 @@ def run_checkatlas(clean_atlas, args) -> None:
                 f"exists: {csv_summary_path}"
             )
         else:
-            if atlas_info[1] == "Seurat":
-                seurat = atlas_seurat.read_atlas(atlas_path)
+            if atlas_info[checkatlas.ATLAS_TYPE_KEY] == "Seurat":
+                data_seurat = seurat.read_atlas(atlas_info[checkatlas.ATLAS_NAME_KEY])
                 logger.info(
                     f"Run checkatlas pipeline for {atlas_name} Seurat atlas"
                 )
                 # Run pipeline functions
                 for function in pipeline_functions_seurat:
-                    function(seurat, atlas_path, args)
+                    function(data_seurat, atlas_info[checkatlas.ATLAS_PATH_KEY], args)
             else:
-                adata = atlas.read_atlas(atlas_path)
+                adata = atlas.read_atlas(atlas_info)
                 # Clean adata
-                adata = atlas.clean_scanpy_atlas(adata, atlas_path)
+                adata = atlas.clean_scanpy_atlas(adata, atlas_info[checkatlas.ATLAS_PATH_KEY])
                 logger.info(
                     f"Run checkatlas pipeline for {atlas_name} Scanpy atlas"
                 )
                 # Run pipeline functions
                 for function in pipeline_functions_scanpy:
-                    function(adata, atlas_path, args)
+                    function(adata, atlas_info[checkatlas.ATLAS_PATH_KEY], args)
 
 
 if __name__ == "__main__":
