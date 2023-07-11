@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+import pandas as pd
 from datetime import datetime
 from checkatlas import checkatlas
 from checkatlas import atlas
@@ -32,32 +33,25 @@ def run(args: argparse.Namespace) -> None:
     folders.checkatlas_folders(args.path)
 
     logger.info("Searching Seurat, Cellranger and Scanpy files")
-    atlas_list = checkatlas.list_atlases(args.path)
-    # First clean atlas list and keep only the h5ad files
+    checkatlas.list_all_atlases(args.path)
     (
-        clean_atlas_scanpy,
-        clean_atlas_seurat,
-        clean_atlas_cellranger,
-    ) = checkatlas.clean_list_atlases(atlas_list, args.path)
+        clean_scanpy_list, clean_cellranger_list, clean_seurat_list
+    ) = checkatlas.read_list_atlases(args.path)
+    clean_scanpy_list = clean_scanpy_list.to_dict('index')
     logger.info(
-        f"Found {len(clean_atlas_scanpy)} potential "
+        f"Found {len(clean_scanpy_list)} potential "
         f"scanpy files with .h5ad extension"
     )
     logger.info(
-        f"Found {len(clean_atlas_seurat)} potential "
+        f"Found {len(clean_seurat_list)} potential "
         f"seurat files with .rds extension"
     )
     logger.info(
-        f"Found {len(clean_atlas_cellranger)} cellranger "
+        f"Found {len(clean_cellranger_list)} cellranger "
         f"file with .h5 extension"
     )
 
-    # Put all atlases together in the list
-    clean_atlas = clean_atlas_scanpy
-#    clean_atlas.update(clean_atlas_cellranger)
-#    clean_atlas.update(clean_atlas_seurat)
-
-    if len(clean_atlas_cellranger) > 0:
+    if len(clean_cellranger_list) > 0:
         logger.debug("Install Seurat if needed")
         seurat.check_seurat_install()
 
@@ -67,14 +61,18 @@ def run(args: argparse.Namespace) -> None:
             "--nextflow option not found: Run checkatlas workflow "
             "without Nextflow"
         )
-        run_checkatlas(clean_atlas, args)
+        if len(clean_scanpy_list) != 0:
+            run_checkatlas(clean_scanpy_list, args)
+        if len(clean_cellranger_list) != 0:
+            run_checkatlas(clean_cellranger_list, args)
+        if len(clean_seurat_list) != 0:
+            run_checkatlas(clean_seurat_list, args)
     else:
-        clean_atlas.update(clean_atlas_seurat)
         logger.info(
             "--nextflow option found: Run checkatlas workflow with Nextflow"
         )
         logger.info(f"Use {args.nextflow} threads")
-        run_checkatlas_nextflow(clean_atlas, args)
+        run_checkatlas_nextflow(clean_scanpy_list, args)
 
     if not args.NOMULTIQC:
         logger.info("Run MultiQC")
@@ -147,7 +145,7 @@ def run_checkatlas(clean_atlas, args) -> None:
         f"for each Seurat atlas: {pipeline_functions_scanpy}"
     )
     # Go through all atls
-    for atlas_info in clean_atlas:
+    for atlas_index, atlas_info in clean_atlas.items():
         atlas_name = atlas_info[checkatlas.ATLAS_NAME_KEY]
         # Load adata only if resume is not selected
         # and if csv_summary_path do not exist

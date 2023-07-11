@@ -42,6 +42,9 @@ process metric_dimred {
     script:
       """
       nfcheckatlas-workflow metric_dimred ${config_file}
+      qzdqzdqz
+      zdqd
+      
       """
 
 
