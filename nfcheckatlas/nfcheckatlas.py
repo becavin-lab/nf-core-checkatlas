@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+import warnings
 from checkatlas import checkatlas
 from checkatlas import atlas
 from checkatlas import seurat
@@ -8,9 +9,10 @@ from checkatlas.utils import folders
 from checkatlas.metrics import cluster
 from checkatlas.metrics import annot
 from checkatlas.metrics import dimred
-
+import scanpy as sc
 
 logger = logging.getLogger("checkatlas")
+    
 
 def run(args: argparse.Namespace) -> None:
     """
@@ -32,13 +34,14 @@ def run(args: argparse.Namespace) -> None:
     args.path = os.path.abspath(args.path)
     logger.debug(f"Check checkatlas folders in:{args.path}")
     folders.checkatlas_folders(args.path)
-
     logger.info("Searching Seurat, Cellranger and Scanpy files")
     checkatlas.list_all_atlases(args.path)
     (
         clean_scanpy_list, clean_cellranger_list, clean_seurat_list
     ) = checkatlas.read_list_atlases(args.path)
     clean_scanpy_list = clean_scanpy_list.to_dict('index')
+    clean_cellranger_list = clean_cellranger_list.to_dict('index')
+    clean_seurat_list = clean_seurat_list.to_dict('index')
     logger.info(
         f"Found {len(clean_scanpy_list)} potential "
         f"scanpy files with .h5ad extension"
@@ -101,7 +104,7 @@ def run_checkatlas_seurat(clean_atlas, args) -> None:
             checkatlas_cmd = f"checkatlas {process} {atlas_name} {args.path}"
             logger.debug(f"Execute: {checkatlas_cmd}")
             # Run Process
-            os.system(process)
+            os.system(checkatlas_cmd)
 
 
 def create_parser():
