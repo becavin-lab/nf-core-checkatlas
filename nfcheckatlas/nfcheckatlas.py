@@ -88,7 +88,7 @@ def run_checkatlas_seurat(clean_atlas, args) -> None:
     Run Checkatlas pipeline for all Scanpy and Cellranger objects
     TO DO: FRO the moment run_checkatlas_seurat and run_checkatlas are
     the same; it will change in final nextflow. Because one will run python code,
-     the other R code
+    the other R code
     Args:
         clean_atlas: List of atlas
         args: List of args for checkatlas program
