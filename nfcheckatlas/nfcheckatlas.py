@@ -1,13 +1,14 @@
 import argparse
 import logging
 import os
-import pandas as pd
-from datetime import datetime
 from checkatlas import checkatlas
 from checkatlas import atlas
 from checkatlas import seurat
 from checkatlas.utils import folders
-from . import checkatlas_workflow, multiqc
+from checkatlas.metrics import cluster
+from checkatlas.metrics import annot
+from checkatlas.metrics import dimred
+
 
 logger = logging.getLogger("checkatlas")
 
@@ -55,76 +56,13 @@ def run(args: argparse.Namespace) -> None:
         logger.debug("Install Seurat if needed")
         seurat.check_seurat_install()
 
-    # Run all checkatlas analysis
-    if args.nextflow == 0:
-        logger.info(
-            "--nextflow option not found: Run checkatlas workflow "
-            "without Nextflow"
-        )
-        if len(clean_scanpy_list) != 0:
-            run_checkatlas(clean_scanpy_list, args)
-        if len(clean_cellranger_list) != 0:
-            run_checkatlas(clean_cellranger_list, args)
-        if len(clean_seurat_list) != 0:
-            run_checkatlas(clean_seurat_list, args)
-    else:
-        logger.info(
-            "--nextflow option found: Run checkatlas workflow with Nextflow"
-        )
-        logger.info(f"Use {args.nextflow} threads")
-        run_checkatlas_nextflow(clean_scanpy_list, args)
+    if len(clean_scanpy_list) != 0:
+        run_checkatlas(clean_scanpy_list, args)
+    if len(clean_cellranger_list) != 0:
+        run_checkatlas(clean_cellranger_list, args)
+    if len(clean_seurat_list) != 0:
+        run_checkatlas_seurat(clean_seurat_list, args)
 
-    if not args.NOMULTIQC:
-        logger.info("Run MultiQC")
-        multiqc.run_multiqc(args)
-
-
-def run_checkatlas_nextflow(clean_atlas, args) -> None:
-    """
-    Run the checkatlas pipeline by using Nextflow.
-    checkatlas_workflow.nf will be run with specific
-    parameters.
-
-    Args:
-        clean_atlas: List of atlases
-        args: List of args for checkatlas program
-
-    Returns:
-        None
-    """
-    checkatlas_workflow.create_checkatlas_worflows(clean_atlas, args)
-    script_path = os.path.dirname(os.path.realpath(__file__))
-    nextflow_main = os.path.join(script_path, "checkatlas_workflow.nf")
-    yaml_files = os.path.join(
-        folders.get_folder(args.path, folders.TEMP), "*.yaml"
-    )
-
-    # getting the current date and time
-    current_datetime = datetime.now()
-    current_time = current_datetime.strftime("%Y%d%m-%H%M%S")
-    report_file = os.path.join(
-        folders.get_workingdir(args.path),
-        f"Nextflow_report-{current_time}.html",
-    )
-    timeline_file = os.path.join(
-        folders.get_workingdir(args.path),
-        f"Nextflow_timeline-{current_time}.html",
-    )
-    working_dir_nextflow = folders.get_folder(args.path, folders.NEXTFLOW)
-    nextflow_cmd = (
-        f"nextflow run -w "
-        f"{working_dir_nextflow}"
-        f" {nextflow_main} -queue-size {args.nextflow} --files "
-        f'"{yaml_files}" -with-report {report_file}'
-        f" -with-timeline {timeline_file}"
-    )
-    logger.debug(f"Execute: {nextflow_cmd}")
-    script_path = os.path.dirname(os.path.realpath(__file__))
-    nextflow_main = os.path.join(script_path, "checkatlas_workflow.nf")
-    # Run Nextflow
-    os.system(nextflow_cmd)
-    logger.debug(f"Nextflow report saved in {report_file}")
-    logger.debug(f"Nextflow timeline saved in {timeline_file}")
 
 
 def run_checkatlas(clean_atlas, args) -> None:
@@ -136,52 +74,137 @@ def run_checkatlas(clean_atlas, args) -> None:
     Returns:
         None
     """
+    # Go through all atlas
+    for atlas_name, atlas_info in clean_atlas.items():
+        for process in checkatlas.PROCESS_TYPE:
+            checkatlas_cmd = f"checkatlas {process} {atlas_name} {args.path}"
+            logger.debug(f"Execute: {checkatlas_cmd}")
+            # Run Process
+            os.system(checkatlas_cmd)
 
-    # List all functions to run
-    pipeline_functions_scanpy = checkatlas.get_pipeline_functions(atlas, args)
-    pipeline_functions_seurat = checkatlas.get_pipeline_functions(seurat, args)
-    logger.debug(
-        f"List of functions which will be ran "
-        f"for each Seurat atlas: {pipeline_functions_scanpy}"
+
+def run_checkatlas_seurat(clean_atlas, args) -> None:
+    """
+    Run Checkatlas pipeline for all Scanpy and Cellranger objects
+    TO DO: FRO the moment run_checkatlas_seurat and run_checkatlas are
+    the same; it will change in final nextflow. Because one will run python code,
+     the other R code
+    Args:
+        clean_atlas: List of atlas
+        args: List of args for checkatlas program
+    Returns:
+        None
+    """
+    # Go through all atlas
+    for atlas_name, atlas_info in clean_atlas.items():
+        for process in checkatlas.PROCESS_TYPE:
+            checkatlas_cmd = f"checkatlas {process} {atlas_name} {args.path}"
+            logger.debug(f"Execute: {checkatlas_cmd}")
+            # Run Process
+            os.system(process)
+
+
+def create_parser():
+    parser = argparse.ArgumentParser(
+        prog="checkatlas",
+        usage="checkatlas [OPTIONS] your_search_folder/",
+        description="CheckAtlas is a one liner tool to check the "
+        "quality of your single-cell atlases. For "
+        "every atlas, it produces the quality control "
+        "tables and figures which can be then processed "
+        "by multiqc. CheckAtlas is able to load Scanpy, "
+        "Seurat, and CellRanger files.",
+        epilog="Enjoy the checkatlas functionality!",
     )
-    # Go through all atls
-    for atlas_index, atlas_info in clean_atlas.items():
-        atlas_name = atlas_info[checkatlas.ATLAS_NAME_KEY]
-        # Load adata only if resume is not selected
-        # and if csv_summary_path do not exist
-        csv_summary_path = os.path.join(
-            folders.get_folder(args.path, folders.SUMMARY),
-            atlas_name + checkatlas.SUMMARY_EXTENSION,
-        )
-        if args.resume and os.path.exists(csv_summary_path):
-            logger.debug(
-                f"Skip {atlas_name} summary file already "
-                f"exists: {csv_summary_path}"
-            )
-        else:
-            if atlas_info[checkatlas.ATLAS_TYPE_KEY] == "Seurat":
-                data_seurat = seurat.read_atlas(atlas_info[checkatlas.ATLAS_NAME_KEY])
-                logger.info(
-                    f"Run checkatlas pipeline for {atlas_name} Seurat atlas"
-                )
-                # Run pipeline functions
-                for function in pipeline_functions_seurat:
-                    function(data_seurat, atlas_info[checkatlas.ATLAS_PATH_KEY], args)
-            else:
-                adata = atlas.read_atlas(atlas_info)
-                # Clean adata
-                adata = atlas.clean_scanpy_atlas(adata, atlas_info[checkatlas.ATLAS_PATH_KEY])
-                logger.info(
-                    f"Run checkatlas pipeline for {atlas_name} Scanpy atlas"
-                )
-                # Run pipeline functions
-                for function in pipeline_functions_scanpy:
-                    function(adata, atlas_info[checkatlas.ATLAS_PATH_KEY], args)
 
+    parser.add_argument(
+        "path",
+        type=str,
+        help="Required argument: Your folder containing "
+        "Scanpy, CellRanger and Seurat atlasesv",
+        default=".",
+    )
+
+    parser.add_argument(
+        "-d",
+        "--debug",
+        action="store_true",
+        help="Print out all debug messages.",
+    )
+
+    # Arguments linked to QC
+    qc_options = parser.add_argument_group("QC options")
+    qc_options.add_argument(
+        "--qc_display",
+        nargs="+",
+        type=str,
+        default=[
+            "violin_plot",
+            "total_counts",
+            "n_genes_by_counts",
+            "pct_counts_mt",
+        ],
+        help="List of QC to display. "
+        "Available qc = violin_plot, total_counts, "
+        "n_genes_by_counts, pct_counts_mt. "
+        "Default: --qc_display violin_plot total_counts "
+        "n_genes_by_counts pct_counts_mt",
+    )
+    qc_options.add_argument(
+        "--plot_celllimit",
+        type=int,
+        default=10000,
+        help="Set the maximum number of cells"
+        "to plot in QC, UMAP, t-SNE, etc...."
+        "If plot_celllimit=0, no limit will"
+        "be applied.",
+    )
+
+    # Arguments linked to metric
+    metric_options = parser.add_argument_group("Metric options")
+    metric_options.add_argument(
+        "--obs_cluster",
+        nargs="+",
+        type=str,
+        default=atlas.OBS_CLUSTERS,
+        help="List of obs from the adata file to "
+        "use in the clustering metric calculus."
+        "Example: --obs_cluster celltype leuven seurat_clusters",
+    )
+    metric_options.add_argument(
+        "--metric_cluster",
+        nargs="+",
+        type=str,
+        # default=["silhouette", "davies_bouldin"],
+        default=["davies_bouldin"],
+        help="Specify the list of clustering metrics to calculate.\n"
+        "   Example: --metric_cluster silhouette davies_bouldin\n"
+        f"   List of cluster metrics: {cluster.__all__}",
+    )
+    metric_options.add_argument(
+        "--metric_annot",
+        nargs="+",
+        type=str,
+        # default=[],
+        default=["rand_index"],
+        help=f"Specify the list of clustering metrics to calculate."
+        f"   Example: --metric_annot rand_index"
+        f"   List of annotation metrics: {annot.__all__}",
+    )
+    metric_options.add_argument(
+        "--metric_dimred",
+        nargs="+",
+        type=str,
+        default=["kruskal_stress"],
+        # default=[],
+        help="Specify the list of dimensionality reduction "
+        "metrics to calculate.\n"
+        "   Example: --metric_dimred kruskal_stress\n"
+        f"   List of dim. red. metrics: {dimred.__all__}",
+    )
+    return parser
 
 if __name__ == "__main__":
-    path = "/Users/christophebecavin/Documents/testatlas/"
-    # atlas_path = "/Users/christophebecavin/Documents/testatlas/"
-    atlas_info = ["test_version", "Scanpy", ".h5ad", "data/test_version.h5ad"]
     # folders.checkatlas_folders(path)
     # atlas_list = list_atlases(path)
+    print("main")
