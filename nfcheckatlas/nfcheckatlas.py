@@ -36,6 +36,7 @@ def run(args: argparse.Namespace) -> None:
     folders.checkatlas_folders(args.path)
     logger.info("Searching Seurat, Cellranger and Scanpy files")
     checkatlas.list_all_atlases(args.path)
+    # Read the list of atlases created
     (
         clean_scanpy_list, clean_cellranger_list, clean_seurat_list
     ) = checkatlas.read_list_atlases(args.path)
