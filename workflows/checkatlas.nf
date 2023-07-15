@@ -46,7 +46,6 @@ include { INPUT_CHECK } from '../subworkflows/local/input_check'
 //
 // MODULE: Installed directly from nf-core/modules
 //
-include { FASTQC                      } from '../modules/nf-core/fastqc/main'
 include { MULTIQC                     } from '../modules/nf-core/multiqc/main'
 include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoftwareversions/main'
 
@@ -59,37 +58,46 @@ include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoft
 // Info required for completion email and summary
 def multiqc_report = []
 
+process LISTATLAS {
+    debug true
+
+    input:
+    val params.path
+
+    script:
+    """
+    #!/usr/bin/env python
+    import checkatlas
+    checkatlas.list_all_atlases(params.path)
+    """
+
+}
+
 workflow CHECKATLAS {
 
-    ch_versions = Channel.empty()
+    // Generate atlas workflow samplesheets
+    
+    LISTATLAS
+    
+    // ch_versions = Channel.empty()
 
     //
     // SUBWORKFLOW: Read in samplesheet, validate and stage input files
     //
-    INPUT_CHECK (
-        file(params.input)
-    )
-    ch_versions = ch_versions.mix(INPUT_CHECK.out.versions)
+    // INPUT_CHECK (
+    //    file(params.input)
+    //)
+    // ch_versions = ch_versions.mix(INPUT_CHECK.out.versions)
     // TODO: OPTIONAL, you can use nf-validation plugin to create an input channel from the samplesheet with Channel.fromSamplesheet("input")
     // See the documentation https://nextflow-io.github.io/nf-validation/samplesheets/fromSamplesheet/
     // ! There is currently no tooling to help you write a sample sheet schema
 
-    //
-    // MODULE: Run FastQC
-    //
-    FASTQC (
-        INPUT_CHECK.out.reads
-    )
-    ch_versions = ch_versions.mix(FASTQC.out.versions.first())
 
-    CUSTOM_DUMPSOFTWAREVERSIONS (
-        ch_versions.unique().collectFile(name: 'collated_versions.yml')
-    )
 
     //
     // MODULE: MultiQC
     //
-    workflow_summary    = WorkflowCheckatlas.paramsSummaryMultiqc(workflow, summary_params)
+    /* workflow_summary    = WorkflowCheckatlas.paramsSummaryMultiqc(workflow, summary_params)
     ch_workflow_summary = Channel.value(workflow_summary)
 
     methods_description    = WorkflowCheckatlas.methodsDescriptionText(workflow, ch_multiqc_custom_methods_description, params)
@@ -107,7 +115,7 @@ workflow CHECKATLAS {
         ch_multiqc_custom_config.toList(),
         ch_multiqc_logo.toList()
     )
-    multiqc_report = MULTIQC.out.report.toList()
+    multiqc_report = MULTIQC.out.report.toList() */
 }
 
 /*
