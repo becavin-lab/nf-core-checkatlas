@@ -48,6 +48,11 @@ ch_multiqc_custom_methods_description = params.multiqc_methods_description ? fil
 //
 // include { MULTIQC                     } from '../modules/nf-core/multiqc/main'
 // include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoftwareversions/main'
+// Read samplesheets for scanpy
+include { CHECKATLAS_SCANPY } from '../subworkflows/local/checkatlas_scanpy'
+include { CHECKATLAS_CELLRANGER } from '../subworkflows/local/checkatlas_cellranger'
+include { CHECKATLAS_SEURAT } from '../subworkflows/local/checkatlas_seurat'
+
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -62,25 +67,37 @@ process LISTATLAS {
     debug true
 
     input:
-    val params.path
+    val checkatlas_path
 
     script:
     """
-    #!/usr/bin/env python
-    import checkatlas
-    checkatlas.list_all_atlases(params.path)
+    checkatlas-workflow search $checkatlas_path
     """
-
+    
 }
+
 
 workflow CHECKATLAS {
 
     // Generate atlas workflow samplesheets
-    
-    LISTATLAS
-    
-    // ch_versions = Channel.empty()
+    LISTATLAS(params.path)
 
+    // CB : I tried that
+    // Channel.fromSamplesheet('checkatlas_file/List_scanpy.csv')
+    // but no idea how it works ! And from where it runs as it checks
+    // many things which I do not need ...
+
+    // Run checkatlas process on scanpy data
+    samplesheet = params.path+'checkatlas_files/List_scanpy.csv'
+    CHECKATLAS_SCANPY(samplesheet)
+    // Run checkatlas process on cellranger data
+    samplesheet = params.path+'checkatlas_files/List_cellranger.csv'
+    CHECKATLAS_CELLRANGER(samplesheet)
+    // Run checkatlas process on seurat data
+    samplesheet = params.path+'checkatlas_files/List_seurat.csv'
+    CHECKATLAS_SEURAT(samplesheet)
+    
+    
     //
     // SUBWORKFLOW: Read in samplesheet, validate and stage input files
     //
