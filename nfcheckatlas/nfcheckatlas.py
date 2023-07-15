@@ -1,7 +1,6 @@
 import argparse
 import logging
 import os
-import warnings
 from checkatlas import checkatlas
 from checkatlas import atlas
 from checkatlas import seurat
@@ -9,7 +8,6 @@ from checkatlas.utils import folders
 from checkatlas.metrics import cluster
 from checkatlas.metrics import annot
 from checkatlas.metrics import dimred
-import scanpy as sc
 
 logger = logging.getLogger("checkatlas")
     
@@ -66,6 +64,9 @@ def run(args: argparse.Namespace) -> None:
         run_checkatlas(clean_cellranger_list, args)
     if len(clean_seurat_list) != 0:
         run_checkatlas_seurat(clean_seurat_list, args)
+    
+    checkatlas.generate_fig_html(args.path,"qc")
+    checkatlas.generate_fig_html(args.path,"reductions")
 
 
 
