@@ -1,4 +1,7 @@
-process MULTIQC {
+/*
+Modified version of MultiQC - Adapted for Checkatlas 
+
+*/process MULTIQC {
     label 'process_single'
 
     conda "bioconda::multiqc=1.14"
@@ -7,6 +10,8 @@ process MULTIQC {
         'quay.io/biocontainers/multiqc:1.14--pyhdfd78af_0' }"
 
     input:
+    val atlases_out
+    path search_path
     path  multiqc_files, stageAs: "?/*"
     path(multiqc_config)
     path(extra_multiqc_config)
@@ -32,7 +37,7 @@ process MULTIQC {
         $config \\
         $extra_config \\
         .
-
+    
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         multiqc: \$( multiqc --version | sed -e "s/multiqc, version //g" )

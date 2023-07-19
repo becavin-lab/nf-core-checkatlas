@@ -5,7 +5,11 @@ process SUMMARY{
     val atlas_info
     path samplesheet
 
+    output:
+    val out_info, emit: out_info
+
     script:
+    out_info = atlas_info.atlas_name + "_Summary"
     """
     checkatlas summary ${atlas_info.atlas_name} $samplesheet
     """
@@ -18,7 +22,11 @@ process QC{
     val atlas_info
     path samplesheet
 
+    output:
+    val out_info, emit: out_info
+
     script:
+    out_info = atlas_info.atlas_name + "_QC"
     """
     checkatlas qc ${atlas_info.atlas_name} $samplesheet
     """
@@ -31,7 +39,11 @@ process METRIC_CLUST{
     val atlas_info
     path samplesheet
 
+    output:
+    val out_info, emit: out_info
+
     script:
+    out_info = atlas_info.atlas_name + "_Metric_Clust"
     """
     checkatlas metric_cluster ${atlas_info.atlas_name} $samplesheet
     """
@@ -44,7 +56,11 @@ process METRIC_ANNOT{
     val atlas_info
     path samplesheet
 
+    output:
+    val out_info, emit: out_info
+
     script:
+    out_info = atlas_info.atlas_name + "_Metric_Annot"
     """
     checkatlas metric_annot ${atlas_info.atlas_name} $samplesheet
     """
@@ -57,7 +73,11 @@ process METRIC_DIMRED{
     val atlas_info
     path samplesheet
 
+    output:
+    val out_info, emit: out_info
+
     script:
+    out_info = atlas_info.atlas_name + "_Metric_dimred"
     """
     checkatlas metric_dimred ${atlas_info.atlas_name} $samplesheet
     """

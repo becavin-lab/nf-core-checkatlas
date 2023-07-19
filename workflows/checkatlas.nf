@@ -134,10 +134,15 @@ process CREATE_REPORT {
 
     input:
     val checkatlas_path
+    val scanpy_out
+
+    output:
+    val out_info, emit: out_info
 
     script:
+    out_info = "HTML reports"
     """
-    checkatlas-workflow report $checkatlas_path
+    checkatlas-workflow html_report $checkatlas_path
     """
     
 }
@@ -157,6 +162,10 @@ def create_atlas_info(LinkedHashMap row) {
 workflow CHECKATLAS {
 
     ch_versions = Channel.empty()
+
+    //
+    // MODULE: Checkatlas
+    // 
 
     // Manage Scanpy atlases
     LIST_SCANPY_ATLASES(params.path)
@@ -182,6 +191,15 @@ workflow CHECKATLAS {
     CHECKATLAS_SEURAT(atlas_info_seurat)
     ch_versions = ch_versions.mix(LIST_SEURAT_ATLASES.out.versions)
     
+    // Collect all output value of checkatlas processes
+    atlases_out = CHECKATLAS_SCANPY.out.scanpy_out
+    atlases_out = atlases_out.mix(CHECKATLAS_CELLRANGER.out.cellranger_out, CHECKATLAS_SEURAT.out.seurat_out)
+    atlases_out = atlases_out.collect()
+
+    // Run HTML report creation for QC plots, UMAP and tSNE
+    CREATE_REPORT(params.path, atlases_out)
+
+    // Collect all software versions
     CUSTOM_DUMPSOFTWAREVERSIONS (
         ch_versions.unique().collectFile(name: 'collated_versions.yml')
     )
@@ -191,23 +209,22 @@ workflow CHECKATLAS {
     //
     workflow_summary    = WorkflowCheckatlas.paramsSummaryMultiqc(workflow, summary_params)
     ch_workflow_summary = Channel.value(workflow_summary)
-
+    
     methods_description    = WorkflowCheckatlas.methodsDescriptionText(workflow, ch_multiqc_custom_methods_description, params)
     ch_methods_description = Channel.value(methods_description)
-
+    
     ch_multiqc_files = Channel.empty()
     ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
     ch_multiqc_files = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml'))
     ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect())
-    ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]}.ifEmpty([]))
-
-    MULTIQC (
+    
+    /* MULTIQC (CREATE_REPORT.out.out_info, params.path,
         ch_multiqc_files.collect(),
         ch_multiqc_config.toList(),
         ch_multiqc_custom_config.toList(),
         ch_multiqc_logo.toList()
     )
-    multiqc_report = MULTIQC.out.report.toList()
+    multiqc_report = MULTIQC.out.report.toList() */
 }
 
 /*
