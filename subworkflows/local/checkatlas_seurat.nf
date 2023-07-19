@@ -9,7 +9,6 @@ include { QC } from '../../modules/local/checkatlas_process'
 include { METRIC_CLUST } from '../../modules/local/checkatlas_process'
 include { METRIC_ANNOT } from '../../modules/local/checkatlas_process'
 include { METRIC_DIMRED } from '../../modules/local/checkatlas_process'
-include { READ_SAMPLESHEET } from './read_samplesheet'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
