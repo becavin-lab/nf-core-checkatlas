@@ -11,21 +11,32 @@ include { METRIC_ANNOT } from '../../modules/local/checkatlas_process'
 include { METRIC_DIMRED } from '../../modules/local/checkatlas_process'
 include { READ_SAMPLESHEET } from './read_samplesheet'
 
+process CREATE_REPORT {
+    debug true
+
+    input:
+    val samplesheet
+
+    script:
+    """
+    checkatlas-workflow report $checkatlas_path
+    """
+    
+}
+
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN Checkatlas scanpy WORKFLOW
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
+
 workflow CHECKATLAS_SCANPY{
     take:
-    samplesheet // file: /path/to/samplesheet.csv
-
+    atlas_info // dict: atlas_info
+    
     main:
-    // Create a channel from list_scanpy samplesheet
-    READ_SAMPLESHEET ( samplesheet )
-    atlas_info = READ_SAMPLESHEET.out.atlas_info
-
     // Run all checkatlas processes
     SUMMARY(atlas_info, params.path)
     QC(atlas_info, params.path)

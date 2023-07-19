@@ -33,7 +33,7 @@ process METRIC_CLUST{
 
     script:
     """
-    checkatlas metric_clust ${atlas_info.atlas_name} $samplesheet
+    checkatlas metric_cluster ${atlas_info.atlas_name} $samplesheet
     """
 }
 

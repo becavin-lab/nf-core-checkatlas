@@ -63,7 +63,55 @@ include { CHECKATLAS_SEURAT } from '../subworkflows/local/checkatlas_seurat'
 // Info required for completion email and summary
 def multiqc_report = []
 
-process LISTATLAS {
+process LIST_SCANPY_ATLASES {
+    debug true
+    
+    input:
+    val checkatlas_path
+
+    output:
+    path "List_scanpy.csv", emit: list_scanpy
+
+    script:
+    """
+    checkatlas-workflow list_scanpy $checkatlas_path
+    cp ${checkatlas_path}/checkatlas_files/List_scanpy.csv List_scanpy.csv
+    """
+}
+
+process LIST_CELLRANGER_ATLASES {
+    debug true
+    
+    input:
+    val checkatlas_path
+
+    output:
+    path "List_cellranger.csv", emit: list_cellranger
+
+    script:
+    """
+    checkatlas-workflow list_cellranger $checkatlas_path
+    cp ${checkatlas_path}/checkatlas_files/List_cellranger.csv List_cellranger.csv
+    """
+}
+
+process LIST_SEURAT_ATLASES {
+    debug true
+    
+    input:
+    val checkatlas_path
+
+    output:
+    path "List_seurat.csv", emit: list_seurat
+
+    script:
+    """
+    checkatlas-workflow list_seurat $checkatlas_path
+    cp ${checkatlas_path}/checkatlas_files/List_seurat.csv List_seurat.csv
+    """
+}
+
+process CREATE_REPORT {
     debug true
 
     input:
@@ -71,33 +119,50 @@ process LISTATLAS {
 
     script:
     """
-    checkatlas-workflow search $checkatlas_path
+    checkatlas-workflow report $checkatlas_path
     """
     
 }
 
+// Function to get list of [ meta, [ fastq_1, fastq_2 ] ]
+def create_atlas_info(LinkedHashMap row) {
+    // create meta map
+    
+    // Atlas_name,Atlas_type,Atlas_extension,Atlas_path
+    def meta = [:]
+    meta.atlas_name = row.Atlas_name
+    meta.atlas_type = row.Atlas_type
+    meta.atlas_extension = row.Atlas_extension
+    meta.atlas_path = row.Atlas_path
+    
+    return meta
+}
 
 workflow CHECKATLAS {
 
-    // Generate atlas workflow samplesheets
-    LISTATLAS(params.path)
+    // Manage Scanpy atlases
+    LIST_SCANPY_ATLASES(params.path)
+    LIST_SCANPY_ATLASES.out.list_scanpy.splitCsv( header:true, sep:',' )
+        .map { create_atlas_info(it) }
+        .set { atlas_info_scanpy }
+    CHECKATLAS_SCANPY(atlas_info_scanpy)
 
-    // CB : I tried that
-    // Channel.fromSamplesheet('checkatlas_file/List_scanpy.csv')
-    // but no idea how it works ! And from where it runs as it checks
-    // many things which I do not need ...
+    // Manage Seurat atlases
+    LIST_CELLRANGER_ATLASES(params.path)
+    LIST_CELLRANGER_ATLASES.out.list_cellranger.splitCsv( header:true, sep:',' )
+        .map { create_atlas_info(it) }
+        .set { atlas_info_cellranger }
+    CHECKATLAS_CELLRANGER(atlas_info_cellranger)
 
-    // Run checkatlas process on scanpy data
-    samplesheet = params.path+'checkatlas_files/List_scanpy.csv'
-    CHECKATLAS_SCANPY(samplesheet)
-    // Run checkatlas process on cellranger data
-    samplesheet = params.path+'checkatlas_files/List_cellranger.csv'
-    CHECKATLAS_CELLRANGER(samplesheet)
-    // Run checkatlas process on seurat data
-    samplesheet = params.path+'checkatlas_files/List_seurat.csv'
-    CHECKATLAS_SEURAT(samplesheet)
+    // Manage Seurat atlases
+    LIST_SEURAT_ATLASES(params.path)
+    LIST_SEURAT_ATLASES.out.list_seurat.splitCsv( header:true, sep:',' )
+        .map { create_atlas_info(it) }
+        .set { atlas_info_seurat }
+    CHECKATLAS_SEURAT(atlas_info_seurat)
     
-    
+//    CREATE_REPORT(params.path) */
+
     //
     // SUBWORKFLOW: Read in samplesheet, validate and stage input files
     //

@@ -19,13 +19,9 @@ include { READ_SAMPLESHEET } from './read_samplesheet'
 
 workflow CHECKATLAS_SEURAT{
     take:
-    samplesheet // file: /path/to/samplesheet.csv
-
+    atlas_info // atlas_info : dict
+    
     main:
-    // Create a channel from list_seurat samplesheet
-    READ_SAMPLESHEET ( samplesheet )
-    atlas_info = READ_SAMPLESHEET.out.atlas_info
-
     // Run all checkatlas processes
     SUMMARY(atlas_info, params.path)
     QC(atlas_info, params.path)
