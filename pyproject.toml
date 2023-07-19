@@ -1,3 +1,4 @@
+# #######################" START NFCORE TOML   ################
 # Config file for Python. Mostly used to configure linting of bin/check_samplesheet.py with Black.
 # Should be kept the same as nf-core/tools to avoid fighting with template synchronisation.
 [tool.black]

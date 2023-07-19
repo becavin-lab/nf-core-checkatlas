@@ -1,0 +1,141 @@
+juil.-15 15:00:57.977 [main] DEBUG nextflow.cli.Launcher - $> nextflow run main.nf --path /data/analysis/data_becavin/checkatlas_test/tuto/data1/ -profile debug
+juil.-15 15:00:58.080 [main] INFO  nextflow.cli.CmdRun - N E X T F L O W  ~  version 23.04.1
+juil.-15 15:00:58.107 [main] DEBUG nextflow.plugin.PluginsFacade - Setting up plugin manager > mode=prod; embedded=false; plugins-dir=/home/becavin/.nextflow/plugins; core-plugins: nf-amazon@1.16.2,nf-azure@1.0.1,nf-codecommit@0.1.4,nf-console@1.0.5,nf-ga4gh@1.0.5,nf-google@1.7.3,nf-tower@1.5.12,nf-wave@0.8.2
+juil.-15 15:00:58.118 [main] INFO  org.pf4j.DefaultPluginStatusProvider - Enabled plugins: []
+juil.-15 15:00:58.120 [main] INFO  org.pf4j.DefaultPluginStatusProvider - Disabled plugins: []
+juil.-15 15:00:58.123 [main] INFO  org.pf4j.DefaultPluginManager - PF4J version 3.4.1 in 'deployment' mode
+juil.-15 15:00:58.137 [main] INFO  org.pf4j.AbstractPluginManager - No plugins
+juil.-15 15:00:58.159 [main] DEBUG nextflow.config.ConfigBuilder - Found config local: /home/becavin/nf-core-checkatlas/nextflow.config
+juil.-15 15:00:58.160 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/becavin/nf-core-checkatlas/nextflow.config
+juil.-15 15:00:58.187 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `debug`
+juil.-15 15:00:59.738 [main] DEBUG nextflow.config.ConfigBuilder - Available config profiles: [cfc_dev, ifb_core, denbi_qbic, alice, mjolnir_globe, uppmax, incliva, uge, rosalind_uge, lugh, unibe_ibu, vai, czbiohub_aws, jax, ccga_med, scw, tigem, tubingen_apg, google, ipop_up, googlels, eddie, medair, biowulf, apptainer, bi, bigpurple, sbc_sharc, adcra, cedars, vsc_kul_uhasselt, pawsey_nimbus, ucl_myriad, utd_ganymede, charliecloud, icr_davros, ceres, munin, arm, rosalind, hasta, cfc, uzh, ebi_codon_slurm, ebc, ku_sund_dangpu, ccga_dx, crick, marvin, biohpc_gen, shifter, mana, mamba, wehi, awsbatch, imperial, maestro, genotoul, abims, janelia, nu_genomics, googlebatch, oist, sahmri, mpcdf, leicester, vsc_ugent, sage, cambridge, podman, ebi_codon, cheaha, xanadu, test, computerome, seg_globe, sanger, dkfz, pasteur, test_full, azurebatch, hki, crukmi, docker, engaging, gis, hypatia, psmn, eva, fgcz, conda, crg, singularity, uw_hyak_pedslabs, prince, utd_sysbio, debug, genouest, cbe, phoenix, gitpod, seawulf, uct_hpc, aws_tower, binac]
+juil.-15 15:00:59.776 [main] DEBUG nextflow.cli.CmdRun - Applied DSL=2 from script declararion
+juil.-15 15:00:59.794 [main] INFO  nextflow.cli.CmdRun - Launching `main.nf` [elated_stonebraker] DSL2 - revision: b9b59dc11d
+juil.-15 15:00:59.795 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins declared=[nf-validation]
+juil.-15 15:00:59.796 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins default=[]
+juil.-15 15:00:59.796 [main] DEBUG nextflow.plugin.PluginsFacade - Plugins resolved requirement=[nf-validation]
+juil.-15 15:00:59.796 [main] DEBUG nextflow.plugin.PluginUpdater - Installing plugin nf-validation version: latest
+juil.-15 15:00:59.904 [main] INFO  org.pf4j.AbstractPluginManager - Plugin 'nf-validation@0.3.1' resolved
+juil.-15 15:00:59.904 [main] INFO  org.pf4j.AbstractPluginManager - Start plugin 'nf-validation@0.3.1'
+juil.-15 15:00:59.910 [main] DEBUG nextflow.plugin.BasePlugin - Plugin started nf-validation@0.3.1
+juil.-15 15:00:59.917 [main] DEBUG nextflow.secret.LocalSecretsProvider - Secrets store: /home/becavin/.nextflow/secrets/store.json
+juil.-15 15:00:59.920 [main] DEBUG nextflow.secret.SecretsLoader - Discovered secrets providers: [nextflow.secret.LocalSecretsProvider@1c6a0103] - activable => nextflow.secret.LocalSecretsProvider@1c6a0103
+juil.-15 15:00:59.972 [main] DEBUG nextflow.Session - Session UUID: 2730cb2c-3f8a-49a6-b495-1e39f1a5f566
+juil.-15 15:00:59.972 [main] DEBUG nextflow.Session - Run name: elated_stonebraker
+juil.-15 15:00:59.972 [main] DEBUG nextflow.Session - Executor pool size: 80
+juil.-15 15:00:59.982 [main] DEBUG nextflow.util.ThreadPoolBuilder - Creating thread pool 'FileTransfer' minSize=10; maxSize=240; workQueue=LinkedBlockingQueue[10000]; allowCoreThreadTimeout=false
+juil.-15 15:00:59.999 [main] DEBUG nextflow.cli.CmdRun - 
+  Version: 23.04.1 build 5866
+  Created: 15-04-2023 06:51 UTC (08:51 CEST)
+  System: Linux 5.10.0-20-amd64
+  Runtime: Groovy 3.0.16 on OpenJDK 64-Bit Server VM 11.0.15-internal+0-adhoc..src
+  Encoding: UTF-8 (UTF-8)
+  Process: 1068438@bego [127.0.1.1]
+  CPUs: 80 - Mem: 2 TB (481.8 GB) - Swap: 975 MB (0)
+juil.-15 15:01:00.021 [main] DEBUG nextflow.Session - Work-dir: /home/becavin/nf-core-checkatlas/work [ext2/ext3]
+juil.-15 15:01:00.035 [main] DEBUG nextflow.executor.ExecutorFactory - Extension executors providers=[]
+juil.-15 15:01:00.045 [main] DEBUG nextflow.Session - Observer factory: DefaultObserverFactory
+juil.-15 15:01:00.101 [main] DEBUG nextflow.cache.CacheFactory - Using Nextflow cache factory: nextflow.cache.DefaultCacheFactory
+juil.-15 15:01:00.111 [main] DEBUG nextflow.util.CustomThreadPool - Creating default thread pool > poolSize: 81; maxThreads: 1000
+juil.-15 15:01:00.168 [main] DEBUG nextflow.Session - Session start
+juil.-15 15:01:00.173 [main] DEBUG nextflow.trace.TraceFileObserver - Workflow started -- trace file: /home/becavin/nf-core-checkatlas/null/pipeline_info/execution_trace_2023-07-15_15-00-59.txt
+juil.-15 15:01:00.183 [main] DEBUG nextflow.Session - Using default localLib path: /home/becavin/nf-core-checkatlas/lib
+juil.-15 15:01:00.186 [main] DEBUG nextflow.Session - Adding to the classpath library: /home/becavin/nf-core-checkatlas/lib
+juil.-15 15:01:00.186 [main] DEBUG nextflow.Session - Adding to the classpath library: /home/becavin/nf-core-checkatlas/lib/nfcore_external_java_deps.jar
+juil.-15 15:01:00.613 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
+juil.-15 15:01:00.624 [main] DEBUG nextflow.script.IncludeDef - Loading included plugin extensions with names: [validateParameters:validateParameters, paramsHelp:paramsHelp]; plugin Id: nf-validation
+juil.-15 15:01:00.784 [main] DEBUG nextflow.script.IncludeDef - Loading included plugin extensions with names: [paramsSummaryLog:paramsSummaryLog, paramsSummaryMap:paramsSummaryMap]; plugin Id: nf-validation
+juil.-15 15:01:00.814 [main] INFO  nextflow.Nextflow - 
+
+-[2m----------------------------------------------------[0m-
+                                        [0;32m,--.[0;30m/[0;32m,-.[0m
+[0;34m        ___     __   __   __   ___     [0;32m/,-._.--~'[0m
+[0;34m  |\ | |__  __ /  ` /  \ |__) |__         [0;33m}  {[0m
+[0;34m  | \| |       \__, \__/ |  \ |___     [0;32m\`-._,-`-,[0m
+                                        [0;32m`._,._,'[0m
+[0;35m  nf-core/checkatlas v1.0dev[0m
+-[2m----------------------------------------------------[0m-
+[1mCore Nextflow options[0m
+  [0;34mrunName    : [0;32melated_stonebraker[0m
+  [0;34mlaunchDir  : [0;32m/home/becavin/nf-core-checkatlas[0m
+  [0;34mworkDir    : [0;32m/home/becavin/nf-core-checkatlas/work[0m
+  [0;34mprojectDir : [0;32m/home/becavin/nf-core-checkatlas[0m
+  [0;34muserName   : [0;32mbecavin[0m
+  [0;34mprofile    : [0;32mdebug[0m
+  [0;34mconfigFiles: [0;32m[0m
+
+[1mInput/output options[0m
+  [0;34mpath       : [0;32m/data/analysis/data_becavin/checkatlas_test/tuto/data1/[0m
+  [0;34moutdir     : [0;32mnull[0m
+
+!! Only displaying parameters that differ from the pipeline defaults !!
+-[2m----------------------------------------------------[0m-
+If you use nf-core/checkatlas for your analysis please cite:
+
+* The nf-core framework
+  https://doi.org/10.1038/s41587-020-0439-x
+
+* Software dependencies
+  https://github.com/nf-core/checkatlas/blob/master/CITATIONS.md
+
+juil.-15 15:01:00.818 [main] WARN  nextflow.script.ScriptBinding - Access to undefined parameter `genomes` -- Initialise it to a default value eg. `params.genomes = some_value`
+juil.-15 15:01:00.819 [main] WARN  nextflow.script.ScriptBinding - Access to undefined parameter `fasta` -- Initialise it to a default value eg. `params.fasta = some_value`
+juil.-15 15:01:00.824 [main] DEBUG nextflow.Session - Session aborted -- Cause: Genome fasta file not specified with e.g. '--fasta genome.fa' or via a detectable config file.
+juil.-15 15:01:00.851 [main] ERROR nextflow.cli.Launcher - @unknown
+nextflow.exception.WorkflowScriptErrorException: Genome fasta file not specified with e.g. '--fasta genome.fa' or via a detectable config file.
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:490)
+	at org.codehaus.groovy.reflection.CachedConstructor.invoke(CachedConstructor.java:72)
+	at org.codehaus.groovy.runtime.callsite.ConstructorSite$ConstructorSiteNoUnwrapNoCoerce.callConstructor(ConstructorSite.java:105)
+	at org.codehaus.groovy.runtime.callsite.CallSiteArray.defaultCallConstructor(CallSiteArray.java:59)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callConstructor(AbstractCallSite.java:263)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callConstructor(AbstractCallSite.java:277)
+	at nextflow.Nextflow.error(Nextflow.groovy:215)
+	at nextflow.Nextflow$error.call(Unknown Source)
+	at org.codehaus.groovy.runtime.callsite.CallSiteArray.defaultCall(CallSiteArray.java:47)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.call(AbstractCallSite.java:125)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.call(AbstractCallSite.java:139)
+	at WorkflowCheckatlas.initialise(WorkflowCheckatlas.groovy:19)
+	at WorkflowCheckatlas$initialise.call(Unknown Source)
+	at org.codehaus.groovy.runtime.callsite.CallSiteArray.defaultCall(CallSiteArray.java:47)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.call(AbstractCallSite.java:125)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.call(AbstractCallSite.java:148)
+	at Script_8ca5fce7.runScript(Script_8ca5fce7:16)
+	at nextflow.script.BaseScript.run0(BaseScript.groovy:145)
+	at nextflow.script.BaseScript.run(BaseScript.groovy:192)
+	at nextflow.script.ScriptParser.runScript(ScriptParser.groovy:229)
+	at nextflow.script.ScriptParser.runScript(ScriptParser.groovy:215)
+	at nextflow.script.ScriptParser.runScript(ScriptParser.groovy:205)
+	at nextflow.script.IncludeDef.memoizedMethodPriv$loadModule0PathMapSession(IncludeDef.groovy:151)
+	at nextflow.script.IncludeDef.access$0(IncludeDef.groovy)
+	at nextflow.script.IncludeDef$__clinit__closure2.doCall(IncludeDef.groovy)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.codehaus.groovy.reflection.CachedMethod.invoke(CachedMethod.java:107)
+	at groovy.lang.MetaMethod.doMethodInvoke(MetaMethod.java:323)
+	at org.codehaus.groovy.runtime.metaclass.ClosureMetaClass.invokeMethod(ClosureMetaClass.java:274)
+	at groovy.lang.MetaClassImpl.invokeMethod(MetaClassImpl.java:1035)
+	at groovy.lang.Closure.call(Closure.java:412)
+	at org.codehaus.groovy.runtime.memoize.Memoize$MemoizeFunction.lambda$call$0(Memoize.java:137)
+	at org.codehaus.groovy.runtime.memoize.ConcurrentCommonCache.getAndPut(ConcurrentCommonCache.java:137)
+	at org.codehaus.groovy.runtime.memoize.ConcurrentCommonCache.getAndPut(ConcurrentCommonCache.java:113)
+	at org.codehaus.groovy.runtime.memoize.Memoize$MemoizeFunction.call(Memoize.java:136)
+	at nextflow.script.IncludeDef.loadModule0(IncludeDef.groovy)
+	at nextflow.script.IncludeDef.load0(IncludeDef.groovy:123)
+	at nextflow.script.IncludeDef$load0$1.call(Unknown Source)
+	at org.codehaus.groovy.runtime.callsite.CallSiteArray.defaultCall(CallSiteArray.java:47)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.call(AbstractCallSite.java:125)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.call(AbstractCallSite.java:139)
+	at Script_19b5813d.runScript(Script_19b5813d:52)
+	at nextflow.script.BaseScript.run0(BaseScript.groovy:145)
+	at nextflow.script.BaseScript.run(BaseScript.groovy:192)
+	at nextflow.script.ScriptParser.runScript(ScriptParser.groovy:229)
+	at nextflow.script.ScriptRunner.run(ScriptRunner.groovy:224)
+	at nextflow.script.ScriptRunner.execute(ScriptRunner.groovy:130)
+	at nextflow.cli.CmdRun.run(CmdRun.groovy:368)
+	at nextflow.cli.Launcher.run(Launcher.groovy:494)
+	at nextflow.cli.Launcher.main(Launcher.groovy:653)
