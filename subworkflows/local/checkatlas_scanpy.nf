@@ -39,8 +39,8 @@ workflow CHECKATLAS_SCANPY{
     // Run all checkatlas processes
     SUMMARY(atlas_info, params.path)
     QC(atlas_info, params.path)
-    METRIC_CLUST(atlas_info, params.path)
-    METRIC_ANNOT(atlas_info, params.path)
-    METRIC_DIMRED(atlas_info, params.path)
+    // METRIC_CLUST(atlas_info, params.path)
+    // METRIC_ANNOT(atlas_info, params.path)
+    // METRIC_DIMRED(atlas_info, params.path)
 
 }
