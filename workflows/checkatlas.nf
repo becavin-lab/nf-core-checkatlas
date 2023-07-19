@@ -126,8 +126,6 @@ process CREATE_REPORT {
 
 // Function to get list of [ meta, [ fastq_1, fastq_2 ] ]
 def create_atlas_info(LinkedHashMap row) {
-    // create meta map
-    
     // Atlas_name,Atlas_type,Atlas_extension,Atlas_path
     def meta = [:]
     meta.atlas_name = row.Atlas_name
