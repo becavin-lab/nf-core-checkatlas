@@ -129,6 +129,18 @@ process LIST_SEURAT_ATLASES {
     """
 }
 
+def create_atlas_info(LinkedHashMap row) {
+    // Function to get list of 
+    // Atlas_name,Atlas_type,Atlas_extension,Atlas_path
+    def meta = [:]
+    meta.atlas_name = row.Atlas_name
+    meta.atlas_type = row.Atlas_type
+    meta.atlas_extension = row.Atlas_extension
+    meta.atlas_path = row.Atlas_path
+    
+    return meta
+}
+
 process CREATE_REPORT {
     debug true
 
@@ -147,16 +159,24 @@ process CREATE_REPORT {
     
 }
 
-// Function to get list of [ meta, [ fastq_1, fastq_2 ] ]
-def create_atlas_info(LinkedHashMap row) {
-    // Atlas_name,Atlas_type,Atlas_extension,Atlas_path
-    def meta = [:]
-    meta.atlas_name = row.Atlas_name
-    meta.atlas_type = row.Atlas_type
-    meta.atlas_extension = row.Atlas_extension
-    meta.atlas_path = row.Atlas_path
-    
-    return meta
+process COPY_MULTIQC_REPORT{
+
+    input:
+    val checkatlas_path
+    path report
+    path data
+
+    script:
+    checkatlas_workingdir = checkatlas_path+"/checkatlas_files/"
+    """
+    cp $report ${checkatlas_workingdir}Checkatlas_MultiQC.html
+    if [ ! -d ${checkatlas_workingdir}multiqc_data/ ]; then
+	    mkdir ${checkatlas_workingdir}multiqc_data/
+    fi
+    ls ${data}
+    cp -R ${data}/* ${checkatlas_workingdir}multiqc_data
+    """
+
 }
 
 workflow CHECKATLAS {
@@ -166,6 +186,8 @@ workflow CHECKATLAS {
     //
     // MODULE: Checkatlas
     // 
+
+    params.path = launchDir + params.path
 
     // Manage Scanpy atlases
     LIST_SCANPY_ATLASES(params.path)
@@ -218,13 +240,16 @@ workflow CHECKATLAS {
     ch_multiqc_files = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml'))
     ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect())
     
-    /* MULTIQC (CREATE_REPORT.out.out_info, params.path,
+    MULTIQC (CREATE_REPORT.out.out_info, params.path,
         ch_multiqc_files.collect(),
         ch_multiqc_config.toList(),
         ch_multiqc_custom_config.toList(),
         ch_multiqc_logo.toList()
     )
-    multiqc_report = MULTIQC.out.report.toList() */
+    multiqc_report = MULTIQC.out.report.toList()
+
+    COPY_MULTIQC_REPORT(params.path, MULTIQC.out.report, MULTIQC.out.data)
+
 }
 
 /*

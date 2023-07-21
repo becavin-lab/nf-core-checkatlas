@@ -33,6 +33,7 @@ workflow CHECKATLAS_SCANPY{
     // Mix all out channels
     scanpy_out = SUMMARY.out.out_info
     scanpy_out = scanpy_out.mix(QC.out.out_info, METRIC_CLUST.out.out_info)
+    //  scanpy_out = scanpy_out.mix(METRIC_CLUST.out.out_info)
     scanpy_out = scanpy_out.mix(METRIC_ANNOT.out.out_info, METRIC_DIMRED.out.out_info)
     
     emit:
