@@ -28,4 +28,11 @@ workflow CHECKATLAS_SEURAT{
     METRIC_ANNOT(atlas_info, params.path)
     METRIC_DIMRED(atlas_info, params.path)
 
+    // Mix all out channels
+    seurat_out = SUMMARY.out.out_info
+    seurat_out = seurat_out.mix(QC.out.out_info, METRIC_CLUST.out.out_info)
+    seurat_out = seurat_out.mix(METRIC_ANNOT.out.out_info, METRIC_DIMRED.out.out_info)
+    
+    emit:
+    seurat_out
 }

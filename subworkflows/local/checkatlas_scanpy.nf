@@ -10,19 +10,6 @@ include { METRIC_CLUST } from '../../modules/local/checkatlas_process'
 include { METRIC_ANNOT } from '../../modules/local/checkatlas_process'
 include { METRIC_DIMRED } from '../../modules/local/checkatlas_process'
 
-process CREATE_REPORT {
-    debug true
-
-    input:
-    val samplesheet
-
-    script:
-    """
-    checkatlas-workflow report $checkatlas_path
-    """
-    
-}
-
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -42,5 +29,13 @@ workflow CHECKATLAS_SCANPY{
     METRIC_CLUST(atlas_info, params.path)
     METRIC_ANNOT(atlas_info, params.path)
     METRIC_DIMRED(atlas_info, params.path)
-
+    
+    // Mix all out channels
+    scanpy_out = SUMMARY.out.out_info
+    scanpy_out = scanpy_out.mix(QC.out.out_info, METRIC_CLUST.out.out_info)
+    //  scanpy_out = scanpy_out.mix(METRIC_CLUST.out.out_info)
+    scanpy_out = scanpy_out.mix(METRIC_ANNOT.out.out_info, METRIC_DIMRED.out.out_info)
+    
+    emit:
+    scanpy_out
 }

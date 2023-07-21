@@ -4,7 +4,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-/* include { paramsSummaryLog; paramsSummaryMap } from 'plugin/nf-validation'
+include { paramsSummaryLog; paramsSummaryMap } from 'plugin/nf-validation'
 
 def logo = NfcoreTemplate.logo(workflow, params.monochrome_logs)
 def citation = '\n' + WorkflowMain.citation(workflow) + '\n'
@@ -13,7 +13,7 @@ def summary_params = paramsSummaryMap(workflow)
 // Print parameter summary log to screen
 log.info logo + paramsSummaryLog(workflow) + citation
 
-WorkflowCheckatlas.initialise(params, log) */
+WorkflowCheckatlas.initialise(params, log)
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -21,11 +21,11 @@ WorkflowCheckatlas.initialise(params, log) */
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-/* ch_multiqc_config          = Channel.fromPath("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
+ch_multiqc_config          = Channel.fromPath("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
 ch_multiqc_custom_config   = params.multiqc_config ? Channel.fromPath( params.multiqc_config, checkIfExists: true ) : Channel.empty()
 ch_multiqc_logo            = params.multiqc_logo   ? Channel.fromPath( params.multiqc_logo, checkIfExists: true ) : Channel.empty()
 ch_multiqc_custom_methods_description = params.multiqc_methods_description ? file(params.multiqc_methods_description, checkIfExists: true) : file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
- */
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     IMPORT LOCAL MODULES/SUBWORKFLOWS
@@ -37,6 +37,11 @@ ch_multiqc_custom_methods_description = params.multiqc_methods_description ? fil
 //
 // include { INPUT_CHECK } from '../subworkflows/local/input_check'
 
+// Run checkatlas for different altas objects
+include { CHECKATLAS_SCANPY } from '../subworkflows/local/checkatlas_scanpy'
+include { CHECKATLAS_CELLRANGER } from '../subworkflows/local/checkatlas_cellranger'
+include { CHECKATLAS_SEURAT } from '../subworkflows/local/checkatlas_seurat'
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     IMPORT NF-CORE MODULES/SUBWORKFLOWS
@@ -46,13 +51,8 @@ ch_multiqc_custom_methods_description = params.multiqc_methods_description ? fil
 //
 // MODULE: Installed directly from nf-core/modules
 //
-// include { MULTIQC                     } from '../modules/nf-core/multiqc/main'
-// include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoftwareversions/main'
-// Read samplesheets for scanpy
-include { CHECKATLAS_SCANPY } from '../subworkflows/local/checkatlas_scanpy'
-include { CHECKATLAS_CELLRANGER } from '../subworkflows/local/checkatlas_cellranger'
-include { CHECKATLAS_SEURAT } from '../subworkflows/local/checkatlas_seurat'
-
+include { MULTIQC                     } from '../modules/nf-core/multiqc/main'
+include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoftwareversions/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -71,11 +71,17 @@ process LIST_SCANPY_ATLASES {
 
     output:
     path "List_scanpy.csv", emit: list_scanpy
+    path "versions.yml", emit: versions
 
     script:
     """
     checkatlas-workflow list_scanpy $checkatlas_path
     cp ${checkatlas_path}/checkatlas_files/List_scanpy.csv List_scanpy.csv
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        checkatlas: \$(checkatlas --version | sed 's/Checkatlas, version //g')
+    END_VERSIONS
     """
 }
 
@@ -87,11 +93,17 @@ process LIST_CELLRANGER_ATLASES {
 
     output:
     path "List_cellranger.csv", emit: list_cellranger
+    path "versions.yml", emit: versions
 
     script:
     """
     checkatlas-workflow list_cellranger $checkatlas_path
     cp ${checkatlas_path}/checkatlas_files/List_cellranger.csv List_cellranger.csv
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        checkatlas: \$(checkatlas --version | sed 's/Checkatlas, version //g')
+    END_VERSIONS
     """
 }
 
@@ -103,29 +115,22 @@ process LIST_SEURAT_ATLASES {
 
     output:
     path "List_seurat.csv", emit: list_seurat
+    path "versions.yml", emit: versions
 
     script:
     """
     checkatlas-workflow list_seurat $checkatlas_path
     cp ${checkatlas_path}/checkatlas_files/List_seurat.csv List_seurat.csv
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        checkatlas: \$(checkatlas --version | sed 's/Checkatlas, version //g')
+    END_VERSIONS
     """
 }
 
-process CREATE_REPORT {
-    debug true
-
-    input:
-    val checkatlas_path
-
-    script:
-    """
-    checkatlas-workflow report $checkatlas_path
-    """
-    
-}
-
-// Function to get list of [ meta, [ fastq_1, fastq_2 ] ]
 def create_atlas_info(LinkedHashMap row) {
+    // Function to get list of 
     // Atlas_name,Atlas_type,Atlas_extension,Atlas_path
     def meta = [:]
     meta.atlas_name = row.Atlas_name
@@ -136,7 +141,53 @@ def create_atlas_info(LinkedHashMap row) {
     return meta
 }
 
+process CREATE_REPORT {
+    debug true
+
+    input:
+    val checkatlas_path
+    val scanpy_out
+
+    output:
+    val out_info, emit: out_info
+
+    script:
+    out_info = "HTML reports"
+    """
+    checkatlas-workflow html_report $checkatlas_path
+    """
+    
+}
+
+process COPY_MULTIQC_REPORT{
+
+    input:
+    val checkatlas_path
+    path report
+    path data
+
+    script:
+    checkatlas_workingdir = checkatlas_path+"/checkatlas_files/"
+    """
+    cp $report ${checkatlas_workingdir}Checkatlas_MultiQC.html
+    if [ ! -d ${checkatlas_workingdir}multiqc_data/ ]; then
+	    mkdir ${checkatlas_workingdir}multiqc_data/
+    fi
+    ls ${data}
+    cp -R ${data}/* ${checkatlas_workingdir}multiqc_data
+    """
+
+}
+
 workflow CHECKATLAS {
+
+    ch_versions = Channel.empty()
+
+    //
+    // MODULE: Checkatlas
+    // 
+
+    params.path = launchDir + params.path
 
     // Manage Scanpy atlases
     LIST_SCANPY_ATLASES(params.path)
@@ -144,13 +195,15 @@ workflow CHECKATLAS {
         .map { create_atlas_info(it) }
         .set { atlas_info_scanpy }
     CHECKATLAS_SCANPY(atlas_info_scanpy)
-
-    // Manage Seurat atlases
+    ch_versions = ch_versions.mix(LIST_SCANPY_ATLASES.out.versions)
+    
+    // Manage Cellranger atlases
     LIST_CELLRANGER_ATLASES(params.path)
     LIST_CELLRANGER_ATLASES.out.list_cellranger.splitCsv( header:true, sep:',' )
         .map { create_atlas_info(it) }
         .set { atlas_info_cellranger }
     CHECKATLAS_CELLRANGER(atlas_info_cellranger)
+    ch_versions = ch_versions.mix(LIST_CELLRANGER_ATLASES.out.versions)
 
     // Manage Seurat atlases
     LIST_SEURAT_ATLASES(params.path)
@@ -158,44 +211,45 @@ workflow CHECKATLAS {
         .map { create_atlas_info(it) }
         .set { atlas_info_seurat }
     CHECKATLAS_SEURAT(atlas_info_seurat)
+    ch_versions = ch_versions.mix(LIST_SEURAT_ATLASES.out.versions)
     
-//    CREATE_REPORT(params.path) */
+    // Collect all output value of checkatlas processes
+    atlases_out = CHECKATLAS_SCANPY.out.scanpy_out
+    atlases_out = atlases_out.mix(CHECKATLAS_CELLRANGER.out.cellranger_out, CHECKATLAS_SEURAT.out.seurat_out)
+    atlases_out = atlases_out.collect()
 
-    //
-    // SUBWORKFLOW: Read in samplesheet, validate and stage input files
-    //
-    // INPUT_CHECK (
-    //    file(params.input)
-    //)
-    // ch_versions = ch_versions.mix(INPUT_CHECK.out.versions)
-    // TODO: OPTIONAL, you can use nf-validation plugin to create an input channel from the samplesheet with Channel.fromSamplesheet("input")
-    // See the documentation https://nextflow-io.github.io/nf-validation/samplesheets/fromSamplesheet/
-    // ! There is currently no tooling to help you write a sample sheet schema
+    // Run HTML report creation for QC plots, UMAP and tSNE
+    CREATE_REPORT(params.path, atlases_out)
 
-
+    // Collect all software versions
+    CUSTOM_DUMPSOFTWAREVERSIONS (
+        ch_versions.unique().collectFile(name: 'collated_versions.yml')
+    )
 
     //
     // MODULE: MultiQC
     //
-    /* workflow_summary    = WorkflowCheckatlas.paramsSummaryMultiqc(workflow, summary_params)
+    workflow_summary    = WorkflowCheckatlas.paramsSummaryMultiqc(workflow, summary_params)
     ch_workflow_summary = Channel.value(workflow_summary)
-
+    
     methods_description    = WorkflowCheckatlas.methodsDescriptionText(workflow, ch_multiqc_custom_methods_description, params)
     ch_methods_description = Channel.value(methods_description)
-
+    
     ch_multiqc_files = Channel.empty()
     ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
     ch_multiqc_files = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml'))
     ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect())
-    ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]}.ifEmpty([]))
-
-    MULTIQC (
+    
+    MULTIQC (CREATE_REPORT.out.out_info, params.path,
         ch_multiqc_files.collect(),
         ch_multiqc_config.toList(),
         ch_multiqc_custom_config.toList(),
         ch_multiqc_logo.toList()
     )
-    multiqc_report = MULTIQC.out.report.toList() */
+    multiqc_report = MULTIQC.out.report.toList()
+
+    COPY_MULTIQC_REPORT(params.path, MULTIQC.out.report, MULTIQC.out.data)
+
 }
 
 /*
