@@ -193,8 +193,6 @@ workflow CHECKATLAS {
     ch_search_path = Channel.value(myFile)
     checkatlas_workingdir = file(params.path+"/checkatlas_files/")
     
-    println checkatlas_workingdir
-
     // Manage Scanpy atlases
     LIST_SCANPY_ATLASES(ch_search_path)
     LIST_SCANPY_ATLASES.out.list_scanpy.splitCsv( header:true, sep:',' )
