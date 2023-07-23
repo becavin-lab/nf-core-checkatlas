@@ -67,7 +67,7 @@ process LIST_SCANPY_ATLASES {
     debug true
     
     input:
-    val checkatlas_path
+    val ch_search_path
 
     output:
     path "List_scanpy.csv", emit: list_scanpy
@@ -75,8 +75,9 @@ process LIST_SCANPY_ATLASES {
 
     script:
     """
-    checkatlas-workflow list_scanpy $checkatlas_path
-    cp ${checkatlas_path}/checkatlas_files/List_scanpy.csv List_scanpy.csv
+    checkatlas-workflow list_scanpy $ch_search_path
+    # copy List .csv to put them iin the scope of nextflow 
+    cp ${ch_search_path}/checkatlas_files/List_scanpy.csv List_scanpy.csv
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -89,7 +90,7 @@ process LIST_CELLRANGER_ATLASES {
     debug true
     
     input:
-    val checkatlas_path
+    val ch_search_path
 
     output:
     path "List_cellranger.csv", emit: list_cellranger
@@ -97,8 +98,9 @@ process LIST_CELLRANGER_ATLASES {
 
     script:
     """
-    checkatlas-workflow list_cellranger $checkatlas_path
-    cp ${checkatlas_path}/checkatlas_files/List_cellranger.csv List_cellranger.csv
+    checkatlas-workflow list_cellranger $ch_search_path
+    # copy List .csv to put them iin the scope of nextflow 
+    cp ${ch_search_path}/checkatlas_files/List_cellranger.csv List_cellranger.csv
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -111,7 +113,7 @@ process LIST_SEURAT_ATLASES {
     debug true
     
     input:
-    val checkatlas_path
+    val ch_search_path
 
     output:
     path "List_seurat.csv", emit: list_seurat
@@ -119,8 +121,9 @@ process LIST_SEURAT_ATLASES {
 
     script:
     """
-    checkatlas-workflow list_seurat $checkatlas_path
-    cp ${checkatlas_path}/checkatlas_files/List_seurat.csv List_seurat.csv
+    checkatlas-workflow list_seurat $ch_search_path
+    # copy List .csv to put them iin the scope of nextflow 
+    cp ${ch_search_path}/checkatlas_files/List_seurat.csv List_seurat.csv
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -145,7 +148,7 @@ process CREATE_REPORT {
     debug true
 
     input:
-    val checkatlas_path
+    val ch_search_path
     val scanpy_out
 
     output:
@@ -154,7 +157,7 @@ process CREATE_REPORT {
     script:
     out_info = "HTML reports"
     """
-    checkatlas-workflow html_report $checkatlas_path
+    checkatlas-workflow html_report $ch_search_path
     """
     
 }
@@ -162,12 +165,11 @@ process CREATE_REPORT {
 process COPY_MULTIQC_REPORT{
 
     input:
-    val checkatlas_path
+    val checkatlas_workingdir
     path report
     path data
 
     script:
-    checkatlas_workingdir = checkatlas_path+"/checkatlas_files/"
     """
     cp $report ${checkatlas_workingdir}Checkatlas_MultiQC.html
     if [ ! -d ${checkatlas_workingdir}multiqc_data/ ]; then
@@ -186,31 +188,35 @@ workflow CHECKATLAS {
     //
     // MODULE: Checkatlas
     // 
-
-    params.path = launchDir + params.path
+    // Create Channel from search path
+    myFile = file(params.path)
+    ch_search_path = Channel.value(myFile)
+    checkatlas_workingdir = file(params.path+"/checkatlas_files/")
+    
+    println checkatlas_workingdir
 
     // Manage Scanpy atlases
-    LIST_SCANPY_ATLASES(params.path)
+    LIST_SCANPY_ATLASES(ch_search_path)
     LIST_SCANPY_ATLASES.out.list_scanpy.splitCsv( header:true, sep:',' )
         .map { create_atlas_info(it) }
         .set { atlas_info_scanpy }
-    CHECKATLAS_SCANPY(atlas_info_scanpy)
+    CHECKATLAS_SCANPY(atlas_info_scanpy, ch_search_path)
     ch_versions = ch_versions.mix(LIST_SCANPY_ATLASES.out.versions)
     
     // Manage Cellranger atlases
-    LIST_CELLRANGER_ATLASES(params.path)
+    LIST_CELLRANGER_ATLASES(ch_search_path)
     LIST_CELLRANGER_ATLASES.out.list_cellranger.splitCsv( header:true, sep:',' )
         .map { create_atlas_info(it) }
         .set { atlas_info_cellranger }
-    CHECKATLAS_CELLRANGER(atlas_info_cellranger)
+    CHECKATLAS_CELLRANGER(atlas_info_cellranger, ch_search_path)
     ch_versions = ch_versions.mix(LIST_CELLRANGER_ATLASES.out.versions)
 
     // Manage Seurat atlases
-    LIST_SEURAT_ATLASES(params.path)
+    LIST_SEURAT_ATLASES(ch_search_path)
     LIST_SEURAT_ATLASES.out.list_seurat.splitCsv( header:true, sep:',' )
         .map { create_atlas_info(it) }
         .set { atlas_info_seurat }
-    CHECKATLAS_SEURAT(atlas_info_seurat)
+    CHECKATLAS_SEURAT(atlas_info_seurat, ch_search_path)
     ch_versions = ch_versions.mix(LIST_SEURAT_ATLASES.out.versions)
     
     // Collect all output value of checkatlas processes
@@ -219,7 +225,7 @@ workflow CHECKATLAS {
     atlases_out = atlases_out.collect()
 
     // Run HTML report creation for QC plots, UMAP and tSNE
-    CREATE_REPORT(params.path, atlases_out)
+    CREATE_REPORT(ch_search_path, atlases_out)
 
     // Collect all software versions
     CUSTOM_DUMPSOFTWAREVERSIONS (
@@ -240,7 +246,7 @@ workflow CHECKATLAS {
     ch_multiqc_files = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml'))
     ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect())
     
-    MULTIQC (CREATE_REPORT.out.out_info, params.path,
+    MULTIQC (CREATE_REPORT.out.out_info, ch_search_path,
         ch_multiqc_files.collect(),
         ch_multiqc_config.toList(),
         ch_multiqc_custom_config.toList(),
@@ -248,7 +254,7 @@ workflow CHECKATLAS {
     )
     multiqc_report = MULTIQC.out.report.toList()
 
-    COPY_MULTIQC_REPORT(params.path, MULTIQC.out.report, MULTIQC.out.data)
+    COPY_MULTIQC_REPORT(checkatlas_workingdir, MULTIQC.out.report, MULTIQC.out.data)
 
 }
 
