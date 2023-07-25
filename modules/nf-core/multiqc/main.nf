@@ -11,7 +11,7 @@ Modified version of MultiQC - Adapted for Checkatlas
 
     input:
     val atlases_out
-    path search_path
+    val search_path
     path  multiqc_files, stageAs: "?/*"
     path(multiqc_config)
     path(extra_multiqc_config)
@@ -36,7 +36,7 @@ Modified version of MultiQC - Adapted for Checkatlas
         $args \\
         $config \\
         $extra_config \\
-        .
+        $search_path
     
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

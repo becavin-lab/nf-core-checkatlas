@@ -19,14 +19,15 @@ include { METRIC_DIMRED } from '../../modules/local/checkatlas_process'
 workflow CHECKATLAS_SEURAT{
     take:
     atlas_info // atlas_info : dict
+    ch_search_path
     
     main:
     // Run all checkatlas processes
-    SUMMARY(atlas_info, params.path)
-    QC(atlas_info, params.path)
-    METRIC_CLUST(atlas_info, params.path)
-    METRIC_ANNOT(atlas_info, params.path)
-    METRIC_DIMRED(atlas_info, params.path)
+    SUMMARY(atlas_info, ch_search_path)
+    QC(atlas_info, ch_search_path)
+    METRIC_CLUST(atlas_info, ch_search_path)
+    METRIC_ANNOT(atlas_info, ch_search_path)
+    METRIC_DIMRED(atlas_info, ch_search_path)
 
     // Mix all out channels
     seurat_out = SUMMARY.out.out_info
