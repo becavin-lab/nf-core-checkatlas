@@ -171,12 +171,12 @@ process COPY_MULTIQC_REPORT{
 
     script:
     """
-    cp $report ${checkatlas_workingdir}Checkatlas_MultiQC.html
-    if [ ! -d ${checkatlas_workingdir}multiqc_data/ ]; then
-	    mkdir ${checkatlas_workingdir}multiqc_data/
+    cp $report ${checkatlas_workingdir}/Checkatlas_MultiQC.html
+    if [ ! -d ${checkatlas_workingdir}/multiqc_data/ ]; then
+	    mkdir ${checkatlas_workingdir}/multiqc_data/
     fi
     ls ${data}
-    cp -R ${data}/* ${checkatlas_workingdir}multiqc_data
+    cp -R ${data}/* ${checkatlas_workingdir}/multiqc_data
     """
 
 }
